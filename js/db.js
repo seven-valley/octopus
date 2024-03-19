@@ -1,3 +1,4 @@
+
 const database ='https://my-vip-cocktail-default-rtdb.europe-west1.firebasedatabase.app/'
 const noeud = database+'personne.json';
 
@@ -21,9 +22,7 @@ const creationLigneTr= (personne)=>{
             console.log(personne.id);
             const retour = await effacerFire(personne.id);
             console.log(retour);
-           
             evt.target.closest('tr').remove();
-           
           }
           clone.querySelector('.btn-warning').onclick= async (evt)=>{
             let id=  evt.target.closest('tr').dataset.id;
@@ -43,14 +42,12 @@ const creationLigneTr= (personne)=>{
 const effacerFire= async(id)=>{
     const response = await fetch(database+'personne/'+id+'.json', {
         method: "DELETE",
-       
     });
 }
 const modifierFire= async(personne)=>{
     const response = await fetch(database+'personne/'+personne.id+'.json', {
         method: "PATCH",
         body: JSON.stringify( { status: ! personne.status } ) 
-       
     });
 }
 
@@ -70,6 +67,18 @@ const ajouterFire= async(prenom,nom)=>{
     return data.name;
 }
 
+const sendData= async(prenom,nom)=>{
+    
+if ('serviceWorker' in navigator && 'SyncManager' in window) {
+    const registration = await navigator.serviceWorker.ready;
+    const personne ={id:new Date().toISOString(),prenom:prenom,nom:nom,status:true};
+    console.log(personne);
+    await writeData('ajouter-personne', personne);
+        registration.sync.register('sync-new-personne');
+        // afficher alert 
+  } 
+}
+
 const lectureFire= async()=>{
     const response = await fetch(noeud);
     const data = await response.json();
@@ -86,9 +95,17 @@ document.getElementById('ajouter').onclick = async()  =>{
     document.getElementById('nom').value=''; // vider input
     const prenom = document.getElementById('prenom').value;
     document.getElementById('prenom').value=''; // vider input
-    const id =await ajouterFire(prenom,nom);
-    const personne ={id:id,prenom:prenom,nom:nom,status:true}
-    creationLigneTr(personne);
+    // try {
+    //  const id = await ajouterFire(prenom,nom);
+    //  const personne ={id:id,prenom:prenom,nom:nom,status:true}
+    // creationLigneTr(personne);
+    // }
+    //catch{
+        sendData (prenom,nom);
+    //}
+   
+
+   
 }
 
 lectureFire();
